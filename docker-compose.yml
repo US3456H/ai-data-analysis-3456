@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  workspace:
+    build: .
+    container_name: ai_workspace
+    volumes:
+      - ./workspace:/workspace
+      - mlflow_artifacts:/mlflow/artifacts
+    ports:
+      - "8888:8888" # JupyterLab
+      - "7860:7860" # Gradio (if run)
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow
+
+  mlflow:
+    image: python:3.9-slim
+    container_name: mlflow_server
+    command: bash -lc "pip install --no-cache-dir mlflow && mkdir -p /mlflow/artifacts && mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0 --port 5000"
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+      - ./mlflow:/mlflow
+    ports:
+      - "5000:5000"
+
+  superset:
+    image: apache/superset:latest
+    container_name: superset
+    environment:
+      - SUPERSET_ENV=production
+    ports:
+      - "8088:8088"
+    volumes:
+      - superset_home:/var/lib/superset
+
+volumes:
+  mlflow_artifacts:
+  superset_home:
