@@ -15,10 +15,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        # use the latest configure-pages
+        uses: actions/configure-pages@v4
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+      - name: Upload artifact for GitHub Pages
+        # use upload-pages-artifact v2 which avoids the deprecated upload-artifact v3
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./docs
 
