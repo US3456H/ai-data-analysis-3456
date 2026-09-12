@@ -1,190 +1,202 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Todo — 本地存储 演示</title>
-
-  <!-- PWA: manifest and theme -->
-  <link rel="manifest" href="/ai-data-analysis-3456/docs/manifest.json">
-  <meta name="theme-color" content="#2563eb">
-
-  <style>
-:root{
-  --bg:#f6f8fb;
-  --card:#ffffff;
-  --muted:#6b7280;
-  --accent:#2563eb;
-  --success:#059669;
-  --danger:#ef4444;
-  --shadow: 0 6px 18px rgba(15,23,42,0.06);
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:linear-gradient(180deg,var(--bg),#fff);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:32px;
-  color:#0f172a;
-}
-.app{
-  width:100%;
-  max-width:720px;
-  background:var(--card);
-  border-radius:12px;
-  padding:20px;
-  box-shadow:var(--shadow);
-}
-h1{margin:0 0 12px 0;font-size:1.5rem}
-#todo-form{display:flex; gap:8px; margin-bottom:12px}
-#todo-input{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e6e9ee;font-size:1rem}
-#add-btn{padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer}
-#add-btn:hover{opacity:0.95}
-.controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.filters{display:flex; gap:6px}
-.filter{background:transparent;border:1px solid transparent;padding:6px 10px;border-radius:8px;cursor:pointer;color:var(--muted)}
-.filter.active{background:#eef2ff;color:var(--accent);border-color:#e0e7ff}
-.clear{background:transparent;border:none;color:var(--danger);cursor:pointer}
-.todo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.todo-item{display:flex;align-items:center;background:#fbfdff;border:1px solid #eef2f6;padding:8px 10px;border-radius:8px;gap:10px}
-.todo-item.completed .text{text-decoration:line-through;color:var(--muted);opacity:0.8}
-.checkbox{width:18px;height:18px;border-radius:4px;border:1px solid #cbd5e1;display:grid;place-items:center;cursor:pointer}
-.checkbox.checked{background:var(--success); color:#fff; border-color:var(--success)}
-.text{flex:1;word-break:break-word}
-.actions{display:flex;gap:8px}
-.action-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem}
-.action-btn:hover{color:#111827}
-.edit-input{width:100%;padding:6px 8px;border-radius:6px;border:1px solid #e6e9ee}
-.footer{margin-top:12px;color:var(--muted);font-size:0.9rem}
-@media (max-width:480px){.app{padding:12px}#add-btn{padding:8px 10px}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>多时区数字时钟</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  }
+  body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:linear-gradient(180deg,var(--bg),#fff);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px;color:#0f172a}
+  .wrap{width:100%;max-width:980px;background:var(--card);border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(15,23,42,0.06)}
+  h1{margin:0 0 12px;font-size:1.4rem}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+  select,input[type="text"]{padding:8px;border-radius:8px;border:1px solid #e6e9ee}
+  button{padding:8px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .card{background:#fbfdff;border:1px solid #eef2f6;padding:12px;border-radius:10px;display:flex;flex-direction:column;gap:8px;min-height:92px}
+  .tz-name{font-weight:600}
+  .time{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Roboto Mono,monospace;font-size:1.6rem}
+  .meta{color:var(--muted);font-size:0.9rem;display:flex;justify-content:space-between;align-items:center}
+  .small{font-size:0.85rem;color:var(--muted)}
+  .remove{background:transparent;color:var(--muted);border:1px solid transparent;cursor:pointer;padding:6px;border-radius:6px}
+  .footer{margin-top:12px;color:var(--muted);font-size:0.9rem}
+  .search{min-width:220px}
+  @media (max-width:480px){.wrap{padding:12px}}
+</style>
 </head>
 <body>
-  <main class="app">
-    <h1>待办事项（Todo）</h1>
-
-    <form id="todo-form" autocomplete="off">
-      <input id="todo-input" type="text" placeholder="添加新任务，按回车或点 Add" aria-label="New task" required />
-      <button id="add-btn" type="submit">Add</button>
-    </form>
+  <main class="wrap">
+    <h1>世界时钟</h1>
 
     <div class="controls">
-      <div class="filters">
-        <button class="filter active" data-filter="all">All</button>
-        <button class="filter" data-filter="active">Active</button>
-        <button class="filter" data-filter="completed">Completed</button>
-      </div>
-      <button id="clear-completed" class="clear">Clear completed</button>
+      <label for="tz-select" class="small">选择时区：</label>
+      <select id="tz-select" style="min-width:260px"></select>
+      <button id="add-btn">添加</button>
+
+      <label class="small" style="margin-left:8px">显示制：</label>
+      <select id="format-toggle" title="时间格式">
+        <option value="24">24 小时</option>
+        <option value="12">12 小时</option>
+      </select>
+
+      <input id="search" class="search" type="text" placeholder="搜索时区（例如 Tokyo / Asia）" />
+      <button id="reset-btn" style="background:#e6e6e6;color:#111">重置默认</button>
     </div>
 
-    <ul id="todo-list" class="todo-list" aria-live="polite"></ul>
+    <div id="clocks" class="grid"></div>
 
-    <footer class="footer">
-      <span id="items-left">0 items left</span>
-    </footer>
+    <div class="footer">提示：点击 Remove 按钮移除时区；设置会自动保存在本地。</div>
   </main>
 
-  <script>
- // 单文件版：Todo 应用，使用浏览器 localStorage 持久化
- const STORAGE_KEY = 'todo_app_v1';
- let todos = [];
- let filter = 'all';
- const $ = sel => document.querySelector(sel);
- const todoListEl = $('#todo-list');
- const form = $('#todo-form');
- const input = $('#todo-input');
- const itemsLeftEl = $('#items-left');
- const filters = document.querySelectorAll('.filter');
- const clearBtn = $('#clear-completed');
+<script>
+/* 多时区数字时钟 */
+const STORAGE_KEY = 'multi_tz_clocks_v1';
+const tzSelect = document.getElementById('tz-select');
+const clocksEl = document.getElementById('clocks');
+const addBtn = document.getElementById('add-btn');
+const formatToggle = document.getElementById('format-toggle');
+const searchInput = document.getElementById('search');
+const resetBtn = document.getElementById('reset-btn');
 
- function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
- function load() { try { const raw = localStorage.getItem(STORAGE_KEY); todos = raw ? JSON.parse(raw) : []; } catch { todos = []; } }
- function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
- function addTodo(text) { const todo = { id: uid(), text: text.trim(), completed: false, createdAt: Date.now() }; todos.unshift(todo); save(); render(); }
- function toggleTodo(id) { const t = todos.find(x => x.id === id); if (t) t.completed = !t.completed; save(); render(); }
- function deleteTodo(id) { todos = todos.filter(t => t.id !== id); save(); render(); }
- function updateTodoText(id, newText) { const t = todos.find(x => x.id === id); if (t) t.text = newText.trim(); save(); render(); }
- function clearCompleted() { todos = todos.filter(t => !t.completed); save(); render(); }
- function setFilter(f) { filter = f; filters.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === f)); render(); }
- function filteredTodos() { if (filter === 'active') return todos.filter(t => !t.completed); if (filter === 'completed') return todos.filter(t => t.completed); return todos; }
+let use24 = true;
+let clocks = []; // array of tz ids
 
- function render() {
-   todoListEl.innerHTML = '';
-   const list = filteredTodos();
-   for (const t of list) {
-     const li = document.createElement('li');
-     li.className = 'todo-item' + (t.completed ? ' completed' : '');
-     const cb = document.createElement('div');
-     cb.className = 'checkbox' + (t.completed ? ' checked' : '');
-     cb.setAttribute('role', 'button');
-     cb.setAttribute('aria-label', 'Toggle');
-     cb.addEventListener('click', () => toggleTodo(t.id));
-     const text = document.createElement('div');
-     text.className = 'text';
-     text.textContent = t.text;
-     const actions = document.createElement('div');
-     actions.className = 'actions';
-     const editBtn = document.createElement('button');
-     editBtn.className = 'action-btn';
-     editBtn.textContent = 'Edit';
-     editBtn.addEventListener('click', () => startEdit(t.id, text));
-     const delBtn = document.createElement('button');
-     delBtn.className = 'action-btn';
-     delBtn.textContent = 'Delete';
-     delBtn.addEventListener('click', () => deleteTodo(t.id));
-     actions.appendChild(editBtn);
-     actions.appendChild(delBtn);
-     li.appendChild(cb);
-     li.appendChild(text);
-     li.appendChild(actions);
-     todoListEl.appendChild(li);
-   }
-   const left = todos.filter(t => !t.completed).length;
-   itemsLeftEl.textContent = `${left} item${left === 1 ? '' : 's'} left`;
- }
-
- function startEdit(id, textEl) {
-   const t = todos.find(x => x.id === id);
-   if (!t) return;
-   const inputEl = document.createElement('input');
-   inputEl.className = 'edit-input';
-   inputEl.value = t.text;
-   textEl.replaceWith(inputEl);
-   inputEl.focus();
-   inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
-   function finish() {
-     const val = inputEl.value.trim();
-     if (val.length === 0) deleteTodo(id);
-     else updateTodoText(id, val);
-   }
-   inputEl.addEventListener('blur', () => finish());
-   inputEl.addEventListener('keydown', (e) => {
-     if (e.key === 'Enter') finish();
-     else if (e.key === 'Escape') render();
-   });
- }
-
- form.addEventListener('submit', (e) => {
-   e.preventDefault();
-   const val = input.value.trim();
-   if (val) { addTodo(val); input.value = ''; }
- });
- filters.forEach(btn => btn.addEventListener('click', () => setFilter(btn.dataset.filter)));
- clearBtn.addEventListener('click', () => clearCompleted());
- load(); render();
-  </script>
-
-  <!-- PWA: register service worker -->
-  <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/ai-data-analysis-3456/docs/service-worker.js').catch(function(err){
-      console.warn('ServiceWorker registration failed: ', err);
-    });
+function getZoneList(){
+  if (typeof Intl === 'object' && typeof Intl.supportedValuesOf === 'function'){
+    try { return Intl.supportedValuesOf('timeZone'); }
+    catch(e){}
   }
-  </script>
+  // fallback common list
+  return ['UTC','Local','Europe/London','Europe/Paris','Europe/Berlin','America/New_York','America/Chicago','America/Denver','America/Los_Angeles','Asia/Tokyo','Asia/Shanghai','Asia/Hong_Kong','Asia/Kolkata','Australia/Sydney','Pacific/Auckland'];
+}
+
+const ALL_ZONES = getZoneList();
+
+function populateSelect(filter=''){
+  tzSelect.innerHTML = '';
+  // include 'Local' top
+  const items = ['Local', ...ALL_ZONES.filter(z => z !== 'Local')];
+  const q = filter.trim().toLowerCase();
+  items.forEach(tz=>{
+    if (q && !tz.toLowerCase().includes(q)) return;
+    const opt = document.createElement('option');
+    opt.value = tz;
+    opt.textContent = tz;
+    tzSelect.appendChild(opt);
+  });
+}
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({clocks, use24}));
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){
+      const obj = JSON.parse(raw);
+      clocks = Array.isArray(obj.clocks) ? obj.clocks : [];
+      use24 = obj.use24 !== undefined ? obj.use24 : true;
+      formatToggle.value = use24 ? '24' : '12';
+    }
+  }catch(e){ clocks = []; use24 = true; }
+}
+
+function addClock(tz){
+  if (!tz) return;
+  if (clocks.includes(tz)) return;
+  clocks.push(tz);
+  save();
+  renderClocks();
+}
+
+function removeClock(tz){
+  clocks = clocks.filter(t => t !== tz);
+  save();
+  renderClocks();
+}
+
+function formatForZone(date, tz){
+  if (tz === 'Local'){
+    const timeStr = new Intl.DateTimeFormat(undefined, {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: !use24}).format(date);
+    const dateStr = new Intl.DateTimeFormat(undefined,{weekday:'short',year:'numeric',month:'short',day:'2-digit'}).format(date);
+    return {timeStr, dateStr, tzName: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'};
+  }
+  const timeFmt = new Intl.DateTimeFormat(undefined, {timeZone:tz, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: !use24, timeZoneName:'short'});
+  const dateFmt = new Intl.DateTimeFormat(undefined, {timeZone:tz, weekday:'short', year:'numeric', month:'short', day:'2-digit'});
+  const parts = timeFmt.formatToParts(new Date());
+  const zoneNamePart = parts.find(p=>p.type==='timeZoneName');
+  const tzName = zoneNamePart ? zoneNamePart.value : tz;
+  const timeStr = parts.filter(p=>p.type!=='timeZoneName').map(p=>p.value).join('');
+  return {timeStr, dateStr: dateFmt.format(date), tzName};
+}
+
+function renderClocks(){
+  clocksEl.innerHTML = '';
+  if (clocks.length === 0){
+    // default set
+    ['Local','UTC','Asia/Tokyo','America/New_York','Europe/London'].forEach(addClock);
+    return;
+  }
+  const now = new Date();
+  clocks.forEach((tz, idx)=>{
+    const info = formatForZone(now, tz);
+    const card = document.createElement('div'); card.className='card';
+    const name = document.createElement('div'); name.className='tz-name'; name.textContent=tz;
+    const time = document.createElement('div'); time.className='time'; time.textContent=info.timeStr;
+    const meta = document.createElement('div'); meta.className='meta';
+    const dateEl = document.createElement('div'); dateEl.className='small'; dateEl.textContent=info.dateStr;
+    const right = document.createElement('div'); right.style.display='flex'; right.style.alignItems='center'; right.style.gap='8px';
+    const tzShort = document.createElement('div'); tzShort.className='small'; tzShort.textContent=info.tzName;
+    const remove = document.createElement('button'); remove.className='remove'; remove.textContent='Remove';
+    remove.addEventListener('click', ()=> removeClock(tz));
+    right.appendChild(tzShort); right.appendChild(remove);
+    meta.appendChild(dateEl); meta.appendChild(right);
+    card.appendChild(name); card.appendChild(time); card.appendChild(meta);
+    clocksEl.appendChild(card);
+  });
+}
+
+function tick(){
+  const now = new Date();
+  const cards = clocksEl.querySelectorAll('.card');
+  cards.forEach((card, idx)=>{
+    const tz = clocks[idx];
+    const info = formatForZone(now, tz);
+    const timeEl = card.querySelector('.time');
+    const smalls = card.querySelectorAll('.small');
+    if (timeEl) timeEl.textContent = info.timeStr;
+    if (smalls.length>0) smalls[0].textContent = info.dateStr;
+    if (smalls.length>1) smalls[1].textContent = info.tzName;
+  });
+}
+
+/* events */
+addBtn.addEventListener('click', ()=> {
+  const val = tzSelect.value;
+  addClock(val);
+});
+formatToggle.addEventListener('change', (e)=> {
+  use24 = (e.target.value === '24');
+  save();
+  renderClocks();
+});
+searchInput.addEventListener('input', (e)=> populateSelect(e.target.value));
+resetBtn.addEventListener('click', ()=>{
+  localStorage.removeItem(STORAGE_KEY);
+  clocks = []; use24 = true;
+  formatToggle.value='24';
+  populateSelect();
+  renderClocks();
+});
+
+/* init */
+load();
+populateSelect();
+renderClocks();
+setInterval(tick, 1000);
+</script>
 </body>
 </html>
