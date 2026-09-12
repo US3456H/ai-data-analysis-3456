@@ -4,6 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Todo — 本地存储 演示</title>
+
+  <!-- PWA: manifest and theme -->
+  <link rel="manifest" href="/ai-data-analysis-3456/docs/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+
   <style>
 :root{
   --bg:#f6f8fb;
@@ -84,93 +89,102 @@ h1{margin:0 0 12px 0;font-size:1.5rem}
   </main>
 
   <script>
-// 单文件版：Todo 应用，使用浏览器 localStorage 持久化
-const STORAGE_KEY = 'todo_app_v1';
-let todos = [];
-let filter = 'all';
-const $ = sel => document.querySelector(sel);
-const todoListEl = $('#todo-list');
-const form = $('#todo-form');
-const input = $('#todo-input');
-const itemsLeftEl = $('#items-left');
-const filters = document.querySelectorAll('.filter');
-const clearBtn = $('#clear-completed');
+ // 单文件版：Todo 应用，使用浏览器 localStorage 持久化
+ const STORAGE_KEY = 'todo_app_v1';
+ let todos = [];
+ let filter = 'all';
+ const $ = sel => document.querySelector(sel);
+ const todoListEl = $('#todo-list');
+ const form = $('#todo-form');
+ const input = $('#todo-input');
+ const itemsLeftEl = $('#items-left');
+ const filters = document.querySelectorAll('.filter');
+ const clearBtn = $('#clear-completed');
 
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
-function load() { try { const raw = localStorage.getItem(STORAGE_KEY); todos = raw ? JSON.parse(raw) : []; } catch { todos = []; } }
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-function addTodo(text) { const todo = { id: uid(), text: text.trim(), completed: false, createdAt: Date.now() }; todos.unshift(todo); save(); render(); }
-function toggleTodo(id) { const t = todos.find(x => x.id === id); if (t) t.completed = !t.completed; save(); render(); }
-function deleteTodo(id) { todos = todos.filter(t => t.id !== id); save(); render(); }
-function updateTodoText(id, newText) { const t = todos.find(x => x.id === id); if (t) t.text = newText.trim(); save(); render(); }
-function clearCompleted() { todos = todos.filter(t => !t.completed); save(); render(); }
-function setFilter(f) { filter = f; filters.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === f)); render(); }
-function filteredTodos() { if (filter === 'active') return todos.filter(t => !t.completed); if (filter === 'completed') return todos.filter(t => t.completed); return todos; }
+ function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
+ function load() { try { const raw = localStorage.getItem(STORAGE_KEY); todos = raw ? JSON.parse(raw) : []; } catch { todos = []; } }
+ function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+ function addTodo(text) { const todo = { id: uid(), text: text.trim(), completed: false, createdAt: Date.now() }; todos.unshift(todo); save(); render(); }
+ function toggleTodo(id) { const t = todos.find(x => x.id === id); if (t) t.completed = !t.completed; save(); render(); }
+ function deleteTodo(id) { todos = todos.filter(t => t.id !== id); save(); render(); }
+ function updateTodoText(id, newText) { const t = todos.find(x => x.id === id); if (t) t.text = newText.trim(); save(); render(); }
+ function clearCompleted() { todos = todos.filter(t => !t.completed); save(); render(); }
+ function setFilter(f) { filter = f; filters.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === f)); render(); }
+ function filteredTodos() { if (filter === 'active') return todos.filter(t => !t.completed); if (filter === 'completed') return todos.filter(t => t.completed); return todos; }
 
-function render() {
-  todoListEl.innerHTML = '';
-  const list = filteredTodos();
-  for (const t of list) {
-    const li = document.createElement('li');
-    li.className = 'todo-item' + (t.completed ? ' completed' : '');
-    const cb = document.createElement('div');
-    cb.className = 'checkbox' + (t.completed ? ' checked' : '');
-    cb.setAttribute('role', 'button');
-    cb.setAttribute('aria-label', 'Toggle');
-    cb.addEventListener('click', () => toggleTodo(t.id));
-    const text = document.createElement('div');
-    text.className = 'text';
-    text.textContent = t.text;
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-    const editBtn = document.createElement('button');
-    editBtn.className = 'action-btn';
-    editBtn.textContent = 'Edit';
-    editBtn.addEventListener('click', () => startEdit(t.id, text));
-    const delBtn = document.createElement('button');
-    delBtn.className = 'action-btn';
-    delBtn.textContent = 'Delete';
-    delBtn.addEventListener('click', () => deleteTodo(t.id));
-    actions.appendChild(editBtn);
-    actions.appendChild(delBtn);
-    li.appendChild(cb);
-    li.appendChild(text);
-    li.appendChild(actions);
-    todoListEl.appendChild(li);
+ function render() {
+   todoListEl.innerHTML = '';
+   const list = filteredTodos();
+   for (const t of list) {
+     const li = document.createElement('li');
+     li.className = 'todo-item' + (t.completed ? ' completed' : '');
+     const cb = document.createElement('div');
+     cb.className = 'checkbox' + (t.completed ? ' checked' : '');
+     cb.setAttribute('role', 'button');
+     cb.setAttribute('aria-label', 'Toggle');
+     cb.addEventListener('click', () => toggleTodo(t.id));
+     const text = document.createElement('div');
+     text.className = 'text';
+     text.textContent = t.text;
+     const actions = document.createElement('div');
+     actions.className = 'actions';
+     const editBtn = document.createElement('button');
+     editBtn.className = 'action-btn';
+     editBtn.textContent = 'Edit';
+     editBtn.addEventListener('click', () => startEdit(t.id, text));
+     const delBtn = document.createElement('button');
+     delBtn.className = 'action-btn';
+     delBtn.textContent = 'Delete';
+     delBtn.addEventListener('click', () => deleteTodo(t.id));
+     actions.appendChild(editBtn);
+     actions.appendChild(delBtn);
+     li.appendChild(cb);
+     li.appendChild(text);
+     li.appendChild(actions);
+     todoListEl.appendChild(li);
+   }
+   const left = todos.filter(t => !t.completed).length;
+   itemsLeftEl.textContent = `${left} item${left === 1 ? '' : 's'} left`;
+ }
+
+ function startEdit(id, textEl) {
+   const t = todos.find(x => x.id === id);
+   if (!t) return;
+   const inputEl = document.createElement('input');
+   inputEl.className = 'edit-input';
+   inputEl.value = t.text;
+   textEl.replaceWith(inputEl);
+   inputEl.focus();
+   inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+   function finish() {
+     const val = inputEl.value.trim();
+     if (val.length === 0) deleteTodo(id);
+     else updateTodoText(id, val);
+   }
+   inputEl.addEventListener('blur', () => finish());
+   inputEl.addEventListener('keydown', (e) => {
+     if (e.key === 'Enter') finish();
+     else if (e.key === 'Escape') render();
+   });
+ }
+
+ form.addEventListener('submit', (e) => {
+   e.preventDefault();
+   const val = input.value.trim();
+   if (val) { addTodo(val); input.value = ''; }
+ });
+ filters.forEach(btn => btn.addEventListener('click', () => setFilter(btn.dataset.filter)));
+ clearBtn.addEventListener('click', () => clearCompleted());
+ load(); render();
+  </script>
+
+  <!-- PWA: register service worker -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/ai-data-analysis-3456/docs/service-worker.js').catch(function(err){
+      console.warn('ServiceWorker registration failed: ', err);
+    });
   }
-  const left = todos.filter(t => !t.completed).length;
-  itemsLeftEl.textContent = `${left} item${left === 1 ? '' : 's'} left`;
-}
-
-function startEdit(id, textEl) {
-  const t = todos.find(x => x.id === id);
-  if (!t) return;
-  const inputEl = document.createElement('input');
-  inputEl.className = 'edit-input';
-  inputEl.value = t.text;
-  textEl.replaceWith(inputEl);
-  inputEl.focus();
-  inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
-  function finish() {
-    const val = inputEl.value.trim();
-    if (val.length === 0) deleteTodo(id);
-    else updateTodoText(id, val);
-  }
-  inputEl.addEventListener('blur', () => finish());
-  inputEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') finish();
-    else if (e.key === 'Escape') render();
-  });
-}
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const val = input.value.trim();
-  if (val) { addTodo(val); input.value = ''; }
-});
-filters.forEach(btn => btn.addEventListener('click', () => setFilter(btn.dataset.filter)));
-clearBtn.addEventListener('click', () => clearCompleted());
-load(); render();
   </script>
 </body>
 </html>
