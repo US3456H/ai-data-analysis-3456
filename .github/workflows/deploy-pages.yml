@@ -23,4 +23,4 @@ jobs:
           path: ./docs
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v1s: actions/deploy-pages@v1
