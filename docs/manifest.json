@@ -1,0 +1,20 @@
+{
+  "name": "Todo — 本地存储 演示",
+  "short_name": "Todo",
+  "start_url": "/ai-data-analysis-3456/docs/",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/ai-data-analysis-3456/docs/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/ai-data-analysis-3456/docs/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
